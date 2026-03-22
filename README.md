@@ -27,7 +27,7 @@ The pipelined version includes:
 
 ### 5-Stage Pipeline Structure
 
-[Pipeline Overview](docs/images/pipeline_overview.png)
+![Pipeline Overview](docs/images/pipeline_overview.png)
 
 The design separates instruction execution into five stages, allowing overlap between consecutive instructions and improving throughput compared to the original single-cycle architecture.
 
@@ -239,4 +239,6 @@ The pipelined architecture, hazard handling, forwarding behavior, verification f
 
 This repository is focused on architectural extension and verification of a pipelined MIPS processor in SystemVerilog.
 The emphasis is on correctness, hazard handling, forwarding behavior, and clear simulation-based validation.
+
+```
 
