@@ -3,6 +3,7 @@
 
 > **Author:** Niv Toren  
 > **Course:** Computer Architecture – 2026  
+> **Lecturer:** Dr. Oren Ganon  
 > **Tools:** ModelSim, SystemVerilog (IEEE 1800-2017)
 
 ---
@@ -119,12 +120,41 @@ This will:
 4. Save waveform files (`prog1.wlf` – `prog4.wlf`)
 5. **Keep waves open** after each program for manual inspection
 
-### Simulation Waveform (prog3 — Factorial of 7)
+---
 
-![Waveform prog3](images/waveform_prog3.png)
-*ModelSim waveform for prog3: Factorial(7) = 5040 = 0x13B0 — 45 cycles, 0 stalls, 8 flushes*
+## 🖼️ Visual Verification
 
-### Expected Output
+The project was validated not only by final memory values, but also through direct waveform inspection in ModelSim.
+The screenshots included below demonstrate:
+
+- Correct instruction flow across the 5 pipeline stages
+- Branch-related flush behavior
+- Correct final write-back / memory-write results
+- Dedicated verification of store-data forwarding in `prog4`
+
+### Example Waveform — prog3 (Factorial)
+
+![Prog3 Waveform](images/waveform_prog3.png)
+
+*ModelSim waveform for `prog3` showing full pipeline activity during factorial execution. The trace ends with the correct final memory write `0x13B0`, after 45 cycles, 0 stalls, and 8 flushes.*
+
+### Example Waveform — prog4 (Store-Data Forwarding)
+
+![Prog4 Waveform](images/prog4_waveform.png)
+
+*Waveform showing the dedicated store-data forwarding scenario: ALU result is produced and immediately stored by the following instruction, resulting in `mem[0x00] = 0x00000008`.*
+
+### Example Waveform — prog2 (GCD Branch Behavior)
+
+![Prog2 Waveform](images/prog2_waveform.png)
+
+*Waveform highlighting iterative loop execution and control-flow behavior during the GCD program.*
+
+---
+
+## 📋 Expected Output
+
+A successful run should print a `PERF` line and terminate with the expected final `test_value` for each program.
 
 ```
 ==========================================
@@ -173,7 +203,9 @@ All program scripts completed.
 | Prog1 (Basic) | 16 | 21 | 0 | 2 | `mem[0x54] = 0x07` |
 | Prog2 (GCD) | 18 | 26 | 0 | 4 | `mem[0x00] = 0x3C` |
 | Prog3 (Factorial) | 34 | 45 | 0 | 8 | `mem[0x00] = 0x13B0` |
-| Prog4 (Store-Fwd) | — | 6 | 0 | 0 | `mem[0x00] = 0x08` |
+| Prog4 (Store-Data Forwarding) | — | 6 | 0 | 0 | `mem[0x00] = 0x08` |
+
+`Prog4` was added as a dedicated verification case for store-data forwarding, validating that a value produced by one instruction can be immediately written to memory by the following `sw` instruction without an incorrect stale operand.
 
 ### Why does Pipeline have more cycles?
 
@@ -209,13 +241,15 @@ A **25–31% reduction** in clock period is sufficient — realistic given each 
 ✅ All assertions passed across all 4 test programs with **zero violations**.  
 ✅ `Errors: 0, Warnings: 0` on full `run_all.do` execution.
 
+Together, these assertions and the four test programs provide functional coverage for arithmetic execution, loop-based control flow, branch flushing, and store-data forwarding behavior.
+
 ---
 
 ## 🔮 Future Improvements
 
 1. **Early Branch Resolution** — Move branch comparison to ID stage → reduce flush penalty from 2 to 1.
 2. **Branch Prediction** — 1-bit or 2-bit predictor to reduce control hazard penalty.
-3. **Structural Hazard Handling** — Handle edge cases with `jr`/`jalr`.
+3. **Advanced Control Hazard Handling** — Extend the design to support additional control-transfer instructions such as `jr`/`jalr` and reduce their penalty.
 4. **Cache Layer** — Add instruction/data cache to simulate realistic memory latency.
 5. **Superscalar Extension** — Dual-issue pipeline for further throughput improvement.
 
@@ -235,5 +269,3 @@ A **25–31% reduction** in clock period is sufficient — realistic given each 
 
 </div>
 ```
-
-***
