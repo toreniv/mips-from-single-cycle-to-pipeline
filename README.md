@@ -1,244 +1,224 @@
-# Pipelined MIPS Processor - From Single-Cycle to 5-Stage Pipeline
+# 🚀 MIPS Processor: From Single-Cycle to 5-Stage Pipeline
+### SystemVerilog Implementation | Computer Architecture Mini-Project 2026
 
-A SystemVerilog implementation of a MIPS processor that was extended from a single-cycle baseline into a full 5-stage pipelined architecture.
+> **Author:** Niv Toren  
+> **Course:** Computer Architecture – 2026  
+> **Lecturer:** Dr. Oren Ganon  
+> **Tools:** ModelSim, SystemVerilog (IEEE 1800-2017)
 
-This project demonstrates the transition from a basic non-pipelined CPU into a more realistic pipelined design with hazard handling, forwarding, flushing, and automated verification in ModelSim.
+---
 
-## Project Overview
+## 📌 Project Overview
 
-The original baseline started as a single-cycle MIPS implementation.  
-In this project, it was redesigned into a 5-stage pipelined processor with the classic stages:
+This project extends a baseline **32-bit Single-Cycle MIPS processor** into a fully functional **5-Stage Pipelined MIPS processor**, implementing classical hazard handling techniques to ensure correct execution.
 
-- IF - Instruction Fetch
-- ID - Instruction Decode / Register Read
-- EX - Execute / ALU
-- MEM - Data Memory Access
-- WB - Write Back
+The baseline Single-Cycle processor was originally designed by Mohamed Maged Elkholy (Alexandria University). The pipeline extension, hazard detection, forwarding logic, testbench, and verification infrastructure were independently designed and implemented by Niv Toren.
 
-The pipelined version includes:
+---
 
-- Hazard Unit for load-use hazard detection
-- Forwarding Unit for resolving RAW dependencies
-- Branch handling with flush logic
-- Reset synchronization for stable startup behavior
-- Automated ModelSim scripts for running and validating multiple programs
+## 🏗️ Architecture
 
-## Architecture
+### Single-Cycle Baseline
+In the original single-cycle design, every instruction completes in a single clock cycle. The clock period is dictated by the **longest instruction** (typically `LW` — Load Word).
 
-### 5-Stage Pipeline Structure
+![Single-Cycle Reference](images/single_cycle_reference.png)
+*Figure 7.59 – MIPS single-cycle processor interfaced to external memory (Harris & Harris)*
 
-![Pipeline Overview](docs/images/pipeline_overview.png)
+**Key limitations identified:**
+- ⚠️ Long critical path → slow clock frequency
+- ⚠️ Low hardware utilization → ALU idle during memory access
+- ⚠️ No instruction-level parallelism
 
-The design separates instruction execution into five stages, allowing overlap between consecutive instructions and improving throughput compared to the original single-cycle architecture.
+### 5-Stage Pipeline Extension
 
-### Main Verification Goals
+![Pipeline Stages](images/pipeline_stages_diagram.png)
+*5-Stage pipeline datapath — IF → ID → EX → MEM → WB*
 
-The project was verified around the most important pipeline behaviors:
+Pipeline registers between each stage (`IF/ID`, `ID/EX`, `EX/MEM`, `MEM/WB`) hold data and control signals, enabling multiple instructions to execute simultaneously.
 
-- Correct instruction flow across IF/ID/EX/MEM/WB
-- Correct forwarding from later stages back into EX
-- Correct load-use hazard detection with stall and flush
-- Correct branch taken behavior with pipeline flushing
-- Correct memory writeback behavior
-- Stable reset behavior using a reset synchronizer
+---
 
-## Key Features
+## ⚡ Hazard Handling
 
-### 1. Hazard Detection
-The Hazard Unit detects load-use hazards and stalls the pipeline when forwarding alone is not enough.
+### Data Hazards — Forwarding (Bypassing)
+When an instruction depends on the result of a previous instruction still in the pipeline, **forwarding** routes the result directly from `EX/MEM` or `MEM/WB` back to the ALU inputs.
 
-### 2. Forwarding
-The Forwarding Unit resolves common data hazards by forwarding values from later pipeline stages instead of waiting for register writeback.
+```
+  ADD $t0, $t1, $t2   ──▶ EX stage (result available)
+  SUB $t3, $t0, $t4   ──▶ needs $t0 ─────────────────▶ Forwarded ✅
+```
 
-### 3. Branch Flush Handling
-Branch decisions are resolved in the EX stage.  
-When a branch is taken, the relevant pipeline stage is flushed so incorrect instructions do not continue execution.
+### Load-Use Hazard — Stall
 
-### 4. Automated Verification
-The repository includes ModelSim `.do` scripts that compile the design and run multiple verification programs automatically.
+![Load-Use Stall](images/load_use_stall_diagram.png)
+*Load-Use hazard: 1 stall cycle inserted when LW is immediately followed by a dependent instruction*
 
-## Repository Structure
+When a `LW` is immediately followed by an instruction that uses the loaded value, the **Hazard Unit** inserts **one stall cycle** (NOP bubble in EX), freezing the `IF/ID` register.
 
-```text
-Code/
-├── Top.sv
-├── Top_tb.sv
-├── MIPS.sv
-├── DataPath.sv
-├── HazardUnit.sv
-├── ForwardingUnit.sv
-├── PipelineReg.sv
-├── ControlUnit.sv
-├── DataMem.sv
-├── RegFile.sv
-├── InstrMem.sv
-├── ResetSynchronizer.sv
-├── prog1
-├── prog2
-├── prog3
-├── prog4
-├── run_all.do
-├── run_prog1.do
-├── run_prog2.do
-├── run_prog3.do
-├── run_prog4.do
-└── README.md
-````
+### Control Hazards — Flush on Branch Taken
 
-## Test Programs
+![Branch Flush](images/branch_flush_diagram.png)
+*Branch flush: 2 pipeline stages flushed when BEQ/BNE is taken, resolved at EX stage*
 
-The design was verified using four separate programs:
+Branch resolution occurs at the **EX stage**. If a branch is taken, the two instructions already fetched (in IF and ID) are flushed by inserting NOPs.
 
-### Prog1 - Basic Program
+---
 
-A general functional test used to verify the basic pipelined flow and correct final memory write.
+## 📁 File Structure
 
-Expected result:
+```
+📦 MIPS-From-single-cycle-to-pipeline
+ ┣ 📂 RTL (Design Files)
+ ┃ ┣ 📄 Top.sv              — Top-level integration
+ ┃ ┣ 📄 MIPS.sv             — Core: connects ControlUnit, DataPath, Hazard, Forwarding
+ ┃ ┣ 📄 DataPath.sv         — 5-stage pipeline datapath
+ ┃ ┣ 📄 PipelineReg.sv      — Generic pipeline register (with clear/enable)
+ ┃ ┣ 📄 ControlUnit.sv      — Main decoder + ALU decoder
+ ┃ ┣ 📄 HazardUnit.sv       — Load-use stall detection
+ ┃ ┣ 📄 ForwardingUnit.sv   — EX/MEM/WB forwarding logic
+ ┃ ┣ 📄 ALU.sv              — 32-bit ALU (ADD/SUB/AND/OR/SLT/...)
+ ┃ ┣ 📄 CLA_Adder.sv        — Carry Look-Ahead Adder
+ ┃ ┣ 📄 RegFile.sv          — 32×32 Register File (write-first bypass)
+ ┃ ┣ 📄 DataMem.sv          — Data Memory (combinational read, clocked write)
+ ┃ ┣ 📄 InstrMem.sv         — Instruction Memory (loads from .txt file)
+ ┃ ┣ 📄 ResetSynchronizer.sv — Synchronous reset synchronizer
+ ┃ ┣ 📄 MUX.sv              — Parameterized MUX
+ ┃ ┣ 📄 Shifter.sv          — Shift unit
+ ┃ ┣ 📄 SignExtn.sv         — Sign extension unit
+ ┃ ┗ 📄 MainDec.sv / ALUDec.sv
+ ┣ 📂 Verification
+ ┃ ┣ 📄 Top_tb.sv           — Main testbench (assertions + PERF counters)
+ ┃ ┣ 📄 run_all.do          — Compile & run all programs automatically
+ ┃ ┣ 📄 prog1.txt           — Test: Basic arithmetic & memory write
+ ┃ ┣ 📄 prog2.txt           — Test: GCD(120, 180) = 60
+ ┃ ┣ 📄 prog3.txt           — Test: Factorial(7) = 5040
+ ┃ ┗ 📄 prog4.txt           — Test: Store-data forwarding
+ ┣ 📂 images                — Diagrams and waveform screenshots
+ ┗ 📂 Documentation
+   ┣ 📄 MIPS_MiniProject_Submission.pdf
+   ┗ 📄 MIPS_MiniProject_Appendix.pdf
+```
 
-* `mem[0x54] = 0x07`
+---
 
-### Prog2 - GCD
+## ▶️ How to Run
 
-Computes the greatest common divisor of 120 and 180.
+### Prerequisites
+- **ModelSim** (Intel/Aldec or Questa)
+- All `.sv` and `.txt` files in the **same working directory**
 
-Expected result:
-
-* `mem[0x00] = 0x3C`
-* decimal result: `60`
-
-### Prog3 - Factorial
-
-Computes factorial of 7.
-
-Expected result:
-
-* `mem[0x00] = 0x13B0`
-* decimal result: `5040`
-
-### Prog4 - Store-Data Forwarding Test
-
-A dedicated verification program added specifically to validate store-data forwarding.
-
-It performs:
-
-* two `addi` instructions
-* one `add`
-* one immediate `sw`
-
-Expected result:
-
-* `mem[0x00] = 0x08`
-
-This test is important because it checks that a value produced by the ALU can be correctly forwarded in time for a following store instruction.
-
-## Verification Results
-
-The following performance counters were collected from simulation:
-
-| Program | Cycles | Stalls | Flushes | Final Result         |
-| ------- | -----: | -----: | ------: | -------------------- |
-| Prog1   |     21 |      0 |       2 | `mem[0x54] = 0x07`   |
-| Prog2   |     26 |      0 |       4 | `mem[0x00] = 0x3C`   |
-| Prog3   |     45 |      0 |       8 | `mem[0x00] = 0x13B0` |
-| Prog4   |      6 |      0 |       0 | `mem[0x00] = 0x08`   |
-
-These results show that:
-
-* the pipeline operates correctly across all test programs
-* flush activity appears where branch behavior is expected
-* the dedicated forwarding test passes
-* the design reaches the expected final memory values in all cases
-
-## ModelSim Waveforms
-
-### Example Waveform - Prog3
-
-![Prog3 Waveform](docs/images/prog3_wave.png)
-
-This waveform demonstrates correct pipeline progression during the factorial program, including instruction flow, memory write, and correct final result.
-
-### Example Waveform - Prog4 Store-Data Forwarding
-
-![Prog4 Waveform](docs/images/prog4_wave.png)
-
-This waveform demonstrates the dedicated store-data forwarding scenario:
-
-* ALU result is produced
-* the following store writes the forwarded value
-* final memory result is `0x00000008`
-
-### Example Waveform - GCD Branch Behavior
-
-![Prog2 Waveform](docs/images/prog2_wave.png)
-
-This waveform highlights branch activity and loop execution in the GCD program, showing the correct final convergence to the expected GCD value.
-
-## Reset and Testbench Notes
-
-`Top_tb.sv` was updated so that:
-
-* assertions and counters run only after `dut.reset_n_synch_w` is active
-* false events during reset synchronizer settling are avoided
-* final memory reporting uses `expected_addr` instead of always showing `mem[0]`
-* the testbench checks both expected address and expected data before declaring completion
-
-This makes the simulation output more robust and prevents misleading PASS indications.
-
-## How to Run
-
-### Run all programs
-
-Open ModelSim in the project folder and run:
-
+### Quick Start
 ```tcl
+# In ModelSim Transcript window:
 do run_all.do
 ```
 
-### Run individual programs
+This will:
+1. Clean and recompile all SystemVerilog files
+2. Run all 4 test programs sequentially
+3. Print PERF stats (cycles / stalls / flushes) for each
+4. Save waveform files (`prog1.wlf` – `prog4.wlf`)
 
-You can also run each program separately:
+### Simulation Waveform (prog3 — Factorial of 7)
 
-```tcl
-do run_prog1.do
-do run_prog2.do
-do run_prog3.do
-do run_prog4.do
+![Waveform prog3](images/waveform_prog3.png)
+*ModelSim waveform for prog3: Factorial(7) = 5040 = 0x13B0 — 45 cycles, 0 stalls, 8 flushes*
+
+### Expected Output
+
 ```
+==========================================
+Testing prog1 (Comprehensive Test)
+Expected: Value 0x07 at address 0x54
+==========================================
+PERF: cycles=21 stalls=0 flushes=2
+TB Finished. Final test_value = 0007 ✅
 
-## What PASS Looks Like
+==========================================
+Testing prog2 (GCD of 120 and 180)
+Expected: 0x3C (60 decimal) at address 0x00
+==========================================
+PERF: cycles=26 stalls=0 flushes=4
+TB Finished. Final test_value = 003c ✅
 
-A successful run should show:
+==========================================
+Testing prog3 (Factorial of 7)
+Expected: 0x13B0 (5040 decimal) at address 0x00
+==========================================
+PERF: cycles=45 stalls=0 flushes=8
+TB Finished. Final test_value = 13b0 ✅
 
-* a `PERF:` line
-* a memory write detection message
-* the correct final value in memory
-* no assertion failures
-
-Example for `prog4`:
-
-```text
+==========================================
+Testing prog4 (Store-Data Forwarding)
+Expected: 0x08 (8 decimal) at address 0x00
+==========================================
 PERF: cycles=6 stalls=0 flushes=0
-Memory[0x00000000] = 0x00000008 (8 decimal)
+TB Finished. Final test_value = 0008 ✅
 ```
 
-## Authors
+---
 
-* Niv Toren
-* Ryan Lifshitz
+## 📊 Performance Analysis
 
-## Credits
+| Program | Single-Cycle Cycles | Pipeline Cycles | Stalls | Flushes | Final Result |
+|---------|-------------------|-----------------|--------|---------|-------------|
+| Prog1 (Basic) | 16 | 21 | 0 | 2 | `mem[0x54] = 0x07` |
+| Prog2 (GCD) | 18 | 26 | 0 | 4 | `mem[0x00] = 0x3C` |
+| Prog3 (Factorial) | 34 | 45 | 0 | 8 | `mem[0x00] = 0x13B0` |
+| Prog4 (Store-Fwd) | — | 6 | 0 | 0 | `mem[0x00] = 0x08` |
 
-Original single-cycle baseline reference:
+### Why does Pipeline have more cycles?
 
-* Mohamed Maged Elkholy
-  Alexandria University, Egypt
+> **Pipeline wins in absolute time** if the clock period is reduced sufficiently.
 
-The pipelined architecture, hazard handling, forwarding behavior, verification flow, and testing extensions were independently developed and extended in this project.
+| Program | Ratio (Single/Pipeline) | Required T_clk reduction |
+|---------|------------------------|--------------------------|
+| Prog1 | 16/21 = 0.762 | > 24% |
+| Prog2 | 18/26 = 0.692 | > 31% |
+| Prog3 | 34/45 = 0.756 | > 25% |
 
-## Notes
+A **25–31% reduction** in clock period is sufficient — realistic given each pipeline stage performs only ~1/5 of the total combinational work.
 
-This repository is focused on architectural extension and verification of a pipelined MIPS processor in SystemVerilog.
-The emphasis is on correctness, hazard handling, forwarding behavior, and clear simulation-based validation.
+---
 
+## ✅ Verification & Assertions
+
+`Top_tb.sv` includes **4 runtime assertions** (gated by `reset_n_synch_w`):
+
+| Assertion | What it checks |
+|-----------|---------------|
+| `ASSERT_ZERO` | `$zero` (reg[0]) remains 0 at all times |
+| `ASSERT_LOAD_USE` | Load-use hazard always triggers stall_F + stall_D + flush_E |
+| `ASSERT_FWD_VALID` | Forwarding selects are always valid (00/01/10) |
+| `ASSERT_ALIGNMENT` | Memory writes are always word-aligned |
+
+All assertions passed across all 4 test programs with **zero violations**.
+
+---
+
+## 🔮 Future Improvements
+
+1. **Early Branch Resolution** — Move branch comparison to ID stage → reduce flush penalty from 2 to 1.
+2. **Branch Prediction** — 1-bit or 2-bit predictor to reduce control hazard penalty.
+3. **Structural Hazard Handling** — Handle edge cases with `jr`/`jalr`.
+4. **Cache Layer** — Add instruction/data cache to simulate realistic memory latency.
+5. **Superscalar Extension** — Dual-issue pipeline for further throughput improvement.
+
+---
+
+## 📚 References
+
+- *Digital Design and Computer Architecture* — David Money Harris & Sarah L. Harris
+- MIPS32 Architecture Reference Manual
+- Original Single-Cycle baseline: Mohamed Maged Elkholy, Alexandria University
+
+---
+
+<div align="center">
+
+**Niv Toren | 2026**
+
+</div>
 ```
 
+***
