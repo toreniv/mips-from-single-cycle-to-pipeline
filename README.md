@@ -117,6 +117,7 @@ This will:
 2. Run all 4 test programs sequentially
 3. Print PERF stats (cycles / stalls / flushes) for each
 4. Save waveform files (`prog1.wlf` – `prog4.wlf`)
+5. **Keep waves open** after each program for manual inspection
 
 ### Simulation Waveform (prog3 — Factorial of 7)
 
@@ -132,6 +133,7 @@ Expected: Value 0x07 at address 0x54
 ==========================================
 PERF: cycles=21 stalls=0 flushes=2
 TB Finished. Final test_value = 0007 ✅
+Prog1 finished. Waves are preserved for inspection.
 
 ==========================================
 Testing prog2 (GCD of 120 and 180)
@@ -139,6 +141,7 @@ Expected: 0x3C (60 decimal) at address 0x00
 ==========================================
 PERF: cycles=26 stalls=0 flushes=4
 TB Finished. Final test_value = 003c ✅
+Prog2 finished. Waves are preserved for inspection.
 
 ==========================================
 Testing prog3 (Factorial of 7)
@@ -146,6 +149,7 @@ Expected: 0x13B0 (5040 decimal) at address 0x00
 ==========================================
 PERF: cycles=45 stalls=0 flushes=8
 TB Finished. Final test_value = 13b0 ✅
+Prog3 finished. Waves are preserved for inspection.
 
 ==========================================
 Testing prog4 (Store-Data Forwarding)
@@ -153,6 +157,11 @@ Expected: 0x08 (8 decimal) at address 0x00
 ==========================================
 PERF: cycles=6 stalls=0 flushes=0
 TB Finished. Final test_value = 0008 ✅
+Prog4 finished. Waves are preserved for inspection.
+
+==========================================
+All program scripts completed.
+==========================================
 ```
 
 ---
@@ -169,6 +178,12 @@ TB Finished. Final test_value = 0008 ✅
 ### Why does Pipeline have more cycles?
 
 > **Pipeline wins in absolute time** if the clock period is reduced sufficiently.
+
+For the pipeline to be faster in wall-clock time, the following condition must hold:
+
+```
+T_clk(Pipeline) / T_clk(Single) < Cycles(Single) / Cycles(Pipeline)
+```
 
 | Program | Ratio (Single/Pipeline) | Required T_clk reduction |
 |---------|------------------------|--------------------------|
@@ -191,7 +206,8 @@ A **25–31% reduction** in clock period is sufficient — realistic given each 
 | `ASSERT_FWD_VALID` | Forwarding selects are always valid (00/01/10) |
 | `ASSERT_ALIGNMENT` | Memory writes are always word-aligned |
 
-All assertions passed across all 4 test programs with **zero violations**.
+✅ All assertions passed across all 4 test programs with **zero violations**.  
+✅ `Errors: 0, Warnings: 0` on full `run_all.do` execution.
 
 ---
 
