@@ -27,7 +27,7 @@ The pipelined version includes:
 
 ### 5-Stage Pipeline Structure
 
-![Pipeline Overview](docs/images/pipeline_overview.png)
+[Pipeline Overview](docs/images/pipeline_overview.png)
 
 The design separates instruction execution into five stages, allowing overlap between consecutive instructions and improving throughput compared to the original single-cycle architecture.
 
