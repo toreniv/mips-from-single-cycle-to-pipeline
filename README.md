@@ -20,8 +20,10 @@ The baseline Single-Cycle processor was originally designed by Mohamed Maged Elk
 ### Single-Cycle Baseline
 In the original single-cycle design, every instruction completes in a single clock cycle. The clock period is dictated by the **longest instruction** (typically `LW` — Load Word).
 
-![Single-Cycle Reference](images/single_cycle_reference.png)
-*Figure 7.59 – MIPS single-cycle processor interfaced to external memory (Harris & Harris)*
+<figure>
+  <img src="images/single_cycle_reference.png" alt="Single-Cycle Reference">
+  <figcaption><em>Figure 7.59 – MIPS single-cycle processor interfaced to external memory (Harris & Harris)</em></figcaption>
+</figure>
 
 **Key limitations identified:**
 - ⚠️ Long critical path → slow clock frequency
@@ -30,8 +32,10 @@ In the original single-cycle design, every instruction completes in a single clo
 
 ### 5-Stage Pipeline Extension
 
-![Pipeline Stages](images/pipeline_stages_diagram.png)
-*5-Stage pipeline datapath — IF → ID → EX → MEM → WB*
+<figure>
+  <img src="images/pipeline_stages_diagram.png" alt="Pipeline Stages">
+  <figcaption><em>5-Stage pipeline datapath — IF → ID → EX → MEM → WB</em></figcaption>
+</figure>
 
 Pipeline registers between each stage (`IF/ID`, `ID/EX`, `EX/MEM`, `MEM/WB`) hold data and control signals, enabling multiple instructions to execute simultaneously.
 
@@ -49,15 +53,19 @@ When an instruction depends on the result of a previous instruction still in the
 
 ### Load-Use Hazard — Stall
 
-![Load-Use Stall](images/load_use_stall_diagram.png)
-*Load-Use hazard: 1 stall cycle inserted when LW is immediately followed by a dependent instruction*
+<figure>
+  <img src="images/load_use_stall_diagram.png" alt="Load-Use Stall">
+  <figcaption><em>Load-Use hazard: 1 stall cycle inserted when LW is immediately followed by a dependent instruction</em></figcaption>
+</figure>
 
 When a `LW` is immediately followed by an instruction that uses the loaded value, the **Hazard Unit** inserts **one stall cycle** (NOP bubble in EX), freezing the `IF/ID` register.
 
 ### Control Hazards — Flush on Branch Taken
 
-![Branch Flush](images/branch_flush_diagram.png)
-*Branch flush: 2 pipeline stages flushed when BEQ/BNE is taken, resolved at EX stage*
+<figure>
+  <img src="images/branch_flush_diagram.png" alt="Branch Flush">
+  <figcaption><em>Branch flush: 2 pipeline stages flushed when BEQ/BNE is taken, resolved at EX stage</em></figcaption>
+</figure>
 
 Branch resolution occurs at the **EX stage**. If a branch is taken, the two instructions already fetched (in IF and ID) are flushed by inserting NOPs.
 
@@ -133,21 +141,24 @@ The screenshots included below demonstrate:
 
 ### Example Waveform — prog3 (Factorial)
 
-![Prog3 Waveform](images/waveform_prog3.png)
-
-*ModelSim waveform for `prog3` showing full pipeline activity during factorial execution. The trace ends with the correct final memory write `0x13B0`, after 45 cycles, 0 stalls, and 8 flushes.*
+<figure>
+  <img src="images/waveform_prog3.png" alt="Prog3 Waveform">
+  <figcaption><em>ModelSim waveform for <code>prog3</code> showing full pipeline activity during factorial execution. The trace ends with the correct final memory write <code>0x13B0</code>, after 45 cycles, 0 stalls, and 8 flushes.</em></figcaption>
+</figure>
 
 ### Example Waveform — prog4 (Store-Data Forwarding)
 
-![Prog4 Waveform](images/prog4_waveform.png)
-
-*Waveform showing the dedicated store-data forwarding scenario: ALU result is produced and immediately stored by the following instruction, resulting in `mem[0x00] = 0x00000008`.*
+<figure>
+  <img src="images/prog4_waveform.png" alt="Prog4 Waveform">
+  <figcaption><em>Waveform showing the dedicated store-data forwarding scenario: ALU result is produced and immediately stored by the following instruction, resulting in <code>mem[0x00] = 0x00000008</code>.</em></figcaption>
+</figure>
 
 ### Example Waveform — prog2 (GCD Branch Behavior)
 
-![Prog2 Waveform](images/prog2_waveform.png)
-
-*Waveform highlighting iterative loop execution and control-flow behavior during the GCD program.*
+<figure>
+  <img src="images/prog2_waveform.png" alt="Prog2 Waveform">
+  <figcaption><em>Waveform highlighting iterative loop execution and control-flow behavior during the GCD program.</em></figcaption>
+</figure>
 
 ---
 
@@ -268,3 +279,4 @@ Together, these assertions and the four test programs provide functional coverag
 
 </div>
 ```
+
