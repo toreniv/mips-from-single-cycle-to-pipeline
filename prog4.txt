@@ -1,0 +1,9 @@
+// Test: Store-Data Forwarding
+// Program writes the sum of two immediate values directly to memory.
+// Expected: mem[0] = 0x00000008
+
+20080005
+20090003
+01095020
+AC0A0000
+00000000

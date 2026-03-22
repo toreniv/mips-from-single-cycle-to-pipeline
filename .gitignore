@@ -1,0 +1,24 @@
+# ModelSim / Questa generated
+work/
+transcript
+*.wlf
+*.log
+*.jou
+
+# Project/session files
+*.mpf
+*.mti
+
+# Backup/temp files
+*.bak
+*.tmp
+
+# Wave / generated helper files
+waves_prog1.do
+waves_prog2.do
+waves_prog3.do
+waves_prog4.do
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
