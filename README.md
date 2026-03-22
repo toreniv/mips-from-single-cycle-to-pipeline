@@ -3,7 +3,6 @@
 
 > **Author:** Niv Toren  
 > **Course:** Computer Architecture – 2026  
-> **Lecturer:** Dr. Oren Ganon  
 > **Tools:** ModelSim, SystemVerilog (IEEE 1800-2017)
 
 ---
